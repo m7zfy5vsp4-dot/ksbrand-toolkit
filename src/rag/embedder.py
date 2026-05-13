@@ -6,16 +6,18 @@ from .loader import DocumentLoader, Chunk
 
 
 class Embedder:
-    """将文本块向量化并存入ChromaDB"""
+    """将文本块向量化并存入ChromaDB
+
+    RAG索引统一使用ChromaDB默认embedding(all-MiniLM-L6-v2)，
+    不依赖OPENAI_API_KEY。API key仅用于LLM内容生成。
+    """
 
     def __init__(self, knowledge_base_dir: str = "knowledge_base",
                  chroma_persist_dir: str = ".chroma_db",
-                 embedding_model: str = "text-embedding-3-small",
                  chunk_size: int = 500,
                  chunk_overlap: int = 100):
         self.knowledge_base_dir = knowledge_base_dir
         self.chroma_persist_dir = chroma_persist_dir
-        self.embedding_model = embedding_model
         self.loader = DocumentLoader(
             knowledge_base_dir=knowledge_base_dir,
             chunk_size=chunk_size,
@@ -32,27 +34,8 @@ class Embedder:
                 self._client = chromadb.PersistentClient(path=self.chroma_persist_dir)
             except ImportError:
                 print("[Embedder] chromadb未安装，请执行: pip install chromadb")
-                print("  注意：chromadb需要Python 3.9-3.12，当前Python版本可能不兼容")
                 return None
         return self._client
-
-    def _get_embedding_function(self):
-        """获取embedding函数，优先使用OpenAI兼容接口，无API key时使用默认"""
-        api_key = os.environ.get("OPENAI_API_KEY", "")
-        if not api_key:
-            print("[Embedder] 未设置OPENAI_API_KEY，使用ChromaDB默认embedding")
-            return None
-        try:
-            from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
-            api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
-            return OpenAIEmbeddingFunction(
-                api_key=api_key,
-                api_base=api_base,
-                model_name=self.embedding_model,
-            )
-        except (ImportError, ValueError) as e:
-            print(f"[Embedder] OpenAI embedding不可用({e})，使用默认embedding")
-            return None
 
     def build_index(self) -> int:
         """构建/重建向量索引，返回索引文档数"""
@@ -63,9 +46,7 @@ class Embedder:
 
         client = self._get_chroma_client()
         if client is None:
-            print("[Embedder] 无法连接ChromaDB，请检查依赖安装")
             return 0
-        embedding_func = self._get_embedding_function()
 
         # 删除旧collection再重建
         try:
@@ -73,14 +54,8 @@ class Embedder:
         except Exception:
             pass
 
-        # 创建新collection
-        if embedding_func:
-            collection = client.create_collection(
-                name="ksbrand_knowledge",
-                embedding_function=embedding_func,
-            )
-        else:
-            collection = client.create_collection(name="ksbrand_knowledge")
+        # 始终使用默认embedding（all-MiniLM-L6-v2），确保读写一致
+        collection = client.get_or_create_collection(name="ksbrand_knowledge")
 
         # 批量插入
         ids = [f"chunk_{i}" for i in range(len(chunks))]
@@ -113,15 +88,8 @@ class Embedder:
             client = self._get_chroma_client()
             if client is None:
                 return None
-            embedding_func = self._get_embedding_function()
             try:
-                if embedding_func:
-                    self._collection = client.get_collection(
-                        name="ksbrand_knowledge",
-                        embedding_function=embedding_func,
-                    )
-                else:
-                    self._collection = client.get_collection(name="ksbrand_knowledge")
+                self._collection = client.get_collection(name="ksbrand_knowledge")
             except ValueError:
                 print("[Embedder] 知识库索引不存在，请先执行 rag build")
                 return None

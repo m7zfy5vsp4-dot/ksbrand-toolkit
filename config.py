@@ -111,10 +111,10 @@ APPROVED_CLAIMS = [
 # === LLM配置 ===
 LLM_CONFIG = {
     "api_base": "https://api.openai.com/v1",  # 可替换为金山云内部大模型
-    "model": "gpt-4o",
+    "model": "glm-5",
     "temperature": 0.3,  # 低温度确保输出稳定
     "max_tokens": 2048,
-    "timeout": 60,
+    "timeout": 180,
 }
 
 # === RAG配置 ===

@@ -50,7 +50,6 @@ def rag_build():
     embedder = Embedder(
         knowledge_base_dir=config.RAG_CONFIG["knowledge_base_dir"],
         chroma_persist_dir=config.RAG_CONFIG["chroma_persist_dir"],
-        embedding_model=config.RAG_CONFIG["embedding_model"],
         chunk_size=config.RAG_CONFIG["chunk_size"],
         chunk_overlap=config.RAG_CONFIG["chunk_overlap"],
     )
@@ -70,7 +69,6 @@ def rag_search(query, top_k, category):
     retriever = Retriever(
         knowledge_base_dir=config.RAG_CONFIG["knowledge_base_dir"],
         chroma_persist_dir=config.RAG_CONFIG["chroma_persist_dir"],
-        embedding_model=config.RAG_CONFIG["embedding_model"],
         top_k=top_k,
     )
     results = retriever.search(query, category=category)

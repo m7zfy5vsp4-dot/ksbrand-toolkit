@@ -32,13 +32,14 @@ class LLMClient:
         """调用LLM生成内容"""
         try:
             from openai import OpenAI
+            import httpx
         except ImportError:
             raise ImportError("请安装openai包: pip install openai")
 
         client = OpenAI(
             api_key=self.api_key,
             base_url=self.api_base,
-            timeout=self.timeout,
+            timeout=httpx.Timeout(self.timeout, connect=10.0),
         )
 
         messages = []
@@ -59,14 +60,8 @@ class LLMClient:
 
     def generate_with_sources(self, prompt: str,
                               system_prompt: Optional[str] = None) -> dict:
-        """调用LLM生成内容，并要求附带来源标注"""
-        source_instruction = (
-            "\n\n【重要】请在输出内容的每一条事实性陈述后标注来源，"
-            "格式为 [来源:文件名/类别]。"
-            "如果没有RAG上下文支撑，请明确标注 [来源:无RAG支撑-需人工核实]。"
-        )
-        enhanced_prompt = prompt + source_instruction
-        content = self.generate(enhanced_prompt, system_prompt)
+        """调用LLM生成内容（来源标注已集成在prompt_builder中）"""
+        content = self.generate(prompt, system_prompt)
         return {
             "content": content,
             "model": self.model,

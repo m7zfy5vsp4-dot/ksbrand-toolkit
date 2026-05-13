@@ -7,15 +7,23 @@
 
 ## 核心能力
 
+{% if capabilities %}
 {% for capability in capabilities %}
 - {{ capability }}
 {% endfor %}
+{% else %}
+（请基于RAG知识库上下文，补充该产品的核心能力要点）
+{% endif %}
 
 ## 适用场景
 
+{% if scenarios %}
 {% for scenario in scenarios %}
 - **{{ scenario.name }}**：{{ scenario.description }}
 {% endfor %}
+{% else %}
+（请基于RAG知识库上下文，补充该产品的典型适用场景）
+{% endif %}
 
 ## 服务保障
 

@@ -21,7 +21,6 @@ class Retriever:
     def __init__(self, embedder: Optional[Embedder] = None,
                  knowledge_base_dir: str = "knowledge_base",
                  chroma_persist_dir: str = ".chroma_db",
-                 embedding_model: str = "text-embedding-3-small",
                  top_k: int = 5):
         if embedder:
             self.embedder = embedder
@@ -29,7 +28,6 @@ class Retriever:
             self.embedder = Embedder(
                 knowledge_base_dir=knowledge_base_dir,
                 chroma_persist_dir=chroma_persist_dir,
-                embedding_model=embedding_model,
             )
         self.top_k = top_k
 
