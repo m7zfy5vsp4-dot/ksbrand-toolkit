@@ -113,7 +113,7 @@ LLM_CONFIG = {
     "api_base": "https://api.openai.com/v1",  # 可替换为金山云内部大模型
     "model": "glm-5",
     "temperature": 0.3,  # 低温度确保输出稳定
-    "max_tokens": 2048,
+    "max_tokens": 8192,
     "timeout": 180,
 }
 

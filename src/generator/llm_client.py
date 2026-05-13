@@ -6,7 +6,7 @@ from typing import Optional
 
 
 class LLMClient:
-    """OpenAI兼容API客户端，支持金山云内部大模型"""
+    """OpenAI兼容API客户端，支持金山云内部大模型（含深度推理模型）"""
 
     def __init__(self, api_base: Optional[str] = None,
                  api_key: Optional[str] = None,
@@ -29,7 +29,7 @@ class LLMClient:
         self.timeout = timeout or config.LLM_CONFIG["timeout"]
 
     def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
-        """调用LLM生成内容"""
+        """调用LLM生成内容，兼容深度推理模型（如glm-5）"""
         try:
             from openai import OpenAI
             import httpx
@@ -48,13 +48,30 @@ class LLMClient:
         messages.append({"role": "user", "content": prompt})
 
         try:
+            # 深度推理模型（glm-5等）需要更大的max_tokens，
+            # 推理过程占reasoning_content，最终输出占content
             response = client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
-            return response.choices[0].message.content or ""
+            message = response.choices[0].message
+            content = message.content
+
+            # 兼容深度推理模型：如果content为空但有reasoning_content，
+            # 说明推理占满了token，需要用更大的max_tokens重试
+            if not content and hasattr(message, 'reasoning_content') and message.reasoning_content:
+                print(f"[LLM] 检测到深度推理模型，推理过程耗尽token，增大max_tokens重试...")
+                response = client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=self.temperature,
+                    max_tokens=self.max_tokens * 4,
+                )
+                content = response.choices[0].message.content or ""
+
+            return content or ""
         except Exception as e:
             raise RuntimeError(f"LLM调用失败: {e}")
 
