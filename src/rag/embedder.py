@@ -37,18 +37,21 @@ class Embedder:
         return self._client
 
     def _get_embedding_function(self):
-        """获取embedding函数，优先使用OpenAI兼容接口"""
+        """获取embedding函数，优先使用OpenAI兼容接口，无API key时使用默认"""
+        api_key = os.environ.get("OPENAI_API_KEY", "")
+        if not api_key:
+            print("[Embedder] 未设置OPENAI_API_KEY，使用ChromaDB默认embedding")
+            return None
         try:
             from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
-            api_key = os.environ.get("OPENAI_API_KEY", "")
             api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
             return OpenAIEmbeddingFunction(
                 api_key=api_key,
                 api_base=api_base,
                 model_name=self.embedding_model,
             )
-        except ImportError:
-            print("[Embedder] chromadb OpenAI embedding功能未找到，使用默认embedding")
+        except (ImportError, ValueError) as e:
+            print(f"[Embedder] OpenAI embedding不可用({e})，使用默认embedding")
             return None
 
     def build_index(self) -> int:
@@ -67,7 +70,7 @@ class Embedder:
         # 删除旧collection再重建
         try:
             client.delete_collection("ksbrand_knowledge")
-        except ValueError:
+        except Exception:
             pass
 
         # 创建新collection
