@@ -1,0 +1,20 @@
+{# 新闻稿模板 - 用于官方新闻发布 #}
+# {{ brand_name }}{{ press_title }}
+
+**{{ publish_location }}，{{ publish_date }}** — {{ lead_sentence }}
+
+{{ body_paragraph_1 }}
+
+{{ body_paragraph_2 }}
+
+{% if quote %}
+> {{ quote_author }}，{{ quote_title }}表示："{{ quote }}"
+{% endif %}
+
+## 关于{{ brand_name }}
+
+{{ brand_name }}（{{ brand_name_en }}）持续为政企客户提供稳定可靠的云服务。如需了解更多信息，请访问{{ brand_name }}官网。
+
+**媒体联系**
+{{ media_contact_name }}
+{{ media_contact_email }}

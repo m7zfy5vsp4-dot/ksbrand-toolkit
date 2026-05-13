@@ -1,0 +1,26 @@
+{# 产品发布公告模板 - 用于CDN、存储、计算等产品版本发布 #}
+# {{ brand_name }}{{ product_name }}正式发布
+
+## 产品概述
+
+{{ brand_name }}{{ product_name }}{{ version }}版本正式发布。{{ product_name }}是{{ brand_name }}面向政企客户的核心{{ product_category }}产品，致力于提供稳定可靠的{{ product_capability }}服务。
+
+## 核心能力
+
+{% for capability in capabilities %}
+- {{ capability }}
+{% endfor %}
+
+## 适用场景
+
+{% for scenario in scenarios %}
+- **{{ scenario.name }}**：{{ scenario.description }}
+{% endfor %}
+
+## 服务保障
+
+{{ brand_name }}提供7×24小时运维保障，SLA可用性承诺达{{ sla_level }}，确保业务连续性。
+
+## 关于{{ brand_name }}
+
+{{ brand_name }}持续为政企客户提供稳定可靠的云服务，拥有多年政企服务经验，通过等保三级认证，支持混合云部署。
